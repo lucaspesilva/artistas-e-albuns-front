@@ -16,7 +16,7 @@ export default {
   methods: {
     UsuarioLogado(token) {
       this.$http.defaults.headers.common['Authorization'] =  token;
-      this.$router.push("home");
+      this.$router.push({name: "home"});
     }
   }
 };

@@ -7,7 +7,38 @@
     :loading="carregando"
     loading-text="Carregando... Por favor, aguarde."
     class="elevation-1"
-  ></v-data-table>
+  >
+    <template v-slot:top>
+      <v-toolbar flat>
+        <v-dialog v-model="dialog" max-width="800px">
+          <v-card>
+            <v-card-title>
+              <span class="headline">Detalhes do Álbum</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col cols="12" sm="6" md="6">
+                    <b>Álbum: </b><span v-if="albumVisualizado">{{albumVisualizado.nome}}</span>  
+                    <br />
+                    <b>Artista: </b><span v-if="albumVisualizado">{{albumVisualizado.artista.nome}}</span>  
+                  </v-col>
+                  <v-col cols="12" sm="6" md="6"> Capas </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="fechar"> Fechar </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-toolbar>
+    </template>
+    <template v-slot:item.actions="{ item }">
+      <v-icon class="mr-2" @click="detalhes(item)"> mdi-file-find </v-icon>
+    </template>
+  </v-data-table>
 </template>
 
 <script>
@@ -18,12 +49,15 @@ export default {
       headers: [
         { text: "Álbum", value: "nome", sortable: false },
         { text: "Artista", value: "artista.nome", sortable: false },
-        { text: "Detalhes", value: "albumUID", sortable: false },
+        { text: "", value: "actions", sortable: false },
       ],
       albuns: [],
       totalAlbuns: 0,
       carregando: true,
       opcoes: {},
+      dialog: false,
+      albumVisualizado: null,
+      capasVisualizado: []
     };
   },
   watch: {
@@ -33,22 +67,40 @@ export default {
       },
       deep: true,
     },
-  },  
+  },
   methods: {
+    fechar() 
+    {
+      this.albumVisualizado = null;
+      this.capasVisualizado = [];
+      this.dialog = false;
+    },
+    detalhes(item) {
+      this.albumVisualizado = item;
+      this.dialog = true;
+    },
     getAlbuns() {
       this.carregando = true;
-      this.$http.get(`/album/?page=`+ (this.opcoes.page - 1) +`&pageSize=` + (this.opcoes.itemsPerPage == -1 ? this.totalAlbuns : this.opcoes.itemsPerPage))
-        .then((response) => {
-          console.log(response.data);
+      this.$http
+        .get(
+          `/album/?page=` +
+            (this.opcoes.page - 1) +
+            `&pageSize=` +
+            (this.opcoes.itemsPerPage == -1
+              ? this.totalAlbuns
+              : this.opcoes.itemsPerPage)
+        )
+        .then((response) => {          
           this.albuns = response.data.albuns;
           this.totalAlbuns = response.data.totalAlbuns;
           this.carregando = false;
         })
         .catch((e) => {
           console.log(e);
-        });      
-    }
-  }
+          this.$router.push({name: "login"});
+        });
+    },
+  },
 };
 </script>
 
