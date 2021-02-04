@@ -21,15 +21,17 @@
                   </v-col>
                   <v-col cols="12">
                     <v-text-field
-                      v-model="senha"                      
+                      v-model="senha"
                       :rules="[rules.required]"
                       type="password"
                       name="input-10-1"
                       label="Senha"
-                      counter                      
+                      counter
                     ></v-text-field>
                   </v-col>
-                  <v-col class="d-flex" cols="12" sm="6" xsm="12"> </v-col>
+                  <v-col class="d-flex" cols="12" sm="6" xsm="12"> 
+                    {{ erro }}
+                  </v-col>
                   <v-spacer></v-spacer>
                   <v-col class="d-flex" cols="12" sm="3" xsm="12" align-end>
                     <v-btn
@@ -58,14 +60,29 @@ export default {
     logar() {
       if (this.$refs.loginForm.validate()) {
         this.valid = false;
+        this.$http
+          .post(`http://localhost:8080/login`, {
+            username: this.user,
+            password: this.senha,
+          })
+          .then((response) => 
+          {
+            this.$emit("onLogar", response.headers["authorization"]);
+          })
+          .catch((e) => 
+          {
+            this.erro = e.message;
+            this.valid = true;
+          });
       }
-    }   
+    },
   },
   data: () => ({
     dialog: true,
     valid: false,
     user: "",
-    senha: "",    
+    senha: "",
+    erro: "",
     rules: {
       required: (value) => !!value || "Obrigatório.",
     },
