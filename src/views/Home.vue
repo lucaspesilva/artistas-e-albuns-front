@@ -2,7 +2,10 @@
   <v-data-table
     :headers="headers"
     :items="albuns"
-    :items-per-page="10"
+    :options.sync="opcoes"
+    :server-items-length="totalAlbuns"
+    :loading="carregando"
+    loading-text="Carregando... Por favor, aguarde."
     class="elevation-1"
   ></v-data-table>
 </template>
@@ -12,25 +15,40 @@ export default {
   name: "Home",
   data() {
     return {
-      headers: [          
-          { text: 'Álbum', value: 'nome', sortable: false },
-          { text: 'Artista', value: 'artista.nome', sortable: false },
-          { text: 'Detalhes', value: 'albumUID', sortable: false },
-        ],
-      albuns: []
+      headers: [
+        { text: "Álbum", value: "nome", sortable: false },
+        { text: "Artista", value: "artista.nome", sortable: false },
+        { text: "Detalhes", value: "albumUID", sortable: false },
+      ],
+      albuns: [],
+      totalAlbuns: 0,
+      carregando: true,
+      opcoes: {},
     };
   },
-  created() {
-    this.$http
-      .get(`http://localhost:8080/album/?page=0&pageSize=10`)
-      .then((response) => {
-        console.log(response.data);
-        this.albuns = response.data;
-      })
-      .catch((e) => {        
-        console.log(e);
-      });
-  },
+  watch: {
+    opcoes: {
+      handler() {
+        this.getAlbuns();
+      },
+      deep: true,
+    },
+  },  
+  methods: {
+    getAlbuns() {
+      this.carregando = true;
+      this.$http.get(`http://localhost:8080/album/?page=`+ (this.opcoes.page - 1) +`&pageSize=` + (this.opcoes.itemsPerPage == -1 ? this.totalAlbuns : this.opcoes.itemsPerPage))
+        .then((response) => {
+          console.log(response.data);
+          this.albuns = response.data.albuns;
+          this.totalAlbuns = response.data.totalAlbuns;
+          this.carregando = false;
+        })
+        .catch((e) => {
+          console.log(e);
+        });      
+    }
+  }
 };
 </script>
 
