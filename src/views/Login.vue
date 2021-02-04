@@ -61,7 +61,7 @@ export default {
       if (this.$refs.loginForm.validate()) {
         this.valid = false;
         this.$http
-          .post(`http://localhost:8080/login`, {
+          .post(`/login`, {
             username: this.user,
             password: this.senha,
           })

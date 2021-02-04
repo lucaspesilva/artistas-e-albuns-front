@@ -37,7 +37,7 @@ export default {
   methods: {
     getAlbuns() {
       this.carregando = true;
-      this.$http.get(`http://localhost:8080/album/?page=`+ (this.opcoes.page - 1) +`&pageSize=` + (this.opcoes.itemsPerPage == -1 ? this.totalAlbuns : this.opcoes.itemsPerPage))
+      this.$http.get(`/album/?page=`+ (this.opcoes.page - 1) +`&pageSize=` + (this.opcoes.itemsPerPage == -1 ? this.totalAlbuns : this.opcoes.itemsPerPage))
         .then((response) => {
           console.log(response.data);
           this.albuns = response.data.albuns;
