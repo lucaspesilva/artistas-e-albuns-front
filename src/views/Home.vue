@@ -19,11 +19,44 @@
               <v-container>
                 <v-row>
                   <v-col cols="12" sm="6" md="6">
-                    <b>Álbum: </b><span v-if="albumVisualizado">{{albumVisualizado.nome}}</span>  
+                    <b>Álbum: </b
+                    ><span v-if="albumVisualizado">{{
+                      albumVisualizado.nome
+                    }}</span>
                     <br />
-                    <b>Artista: </b><span v-if="albumVisualizado">{{albumVisualizado.artista.nome}}</span>  
+                    <b>Artista: </b
+                    ><span v-if="albumVisualizado">{{
+                      albumVisualizado.artista.nome
+                    }}</span>
                   </v-col>
-                  <v-col cols="12" sm="6" md="6"> Capas </v-col>
+                  <v-col cols="12" sm="6" md="6">
+                    <v-carousel v-model="capaAtual" v-if="capasVisualizado">
+                      <v-carousel-item
+                        v-for="capa in capasVisualizado"
+                        :key="capa"
+                      >
+                        <v-img :src="capa"
+                        >
+                          <template v-slot:placeholder>
+                            <v-row
+                              class="fill-height ma-0"
+                              align="center"
+                              justify="center"
+                            >
+                              <v-progress-circular
+                                indeterminate
+                                color="grey lighten-5"
+                              ></v-progress-circular>
+                            </v-row>
+                          </template>
+                        </v-img>
+                      </v-carousel-item>
+                    </v-carousel>
+                    <div v-else>
+                      <v-icon large> mdi-image-off </v-icon>
+                      <span>Nenhuma capa disponível</span>
+                    </div>
+                  </v-col>
                 </v-row>
               </v-container>
             </v-card-text>
@@ -49,7 +82,7 @@ export default {
       headers: [
         { text: "Álbum", value: "nome", sortable: false },
         { text: "Artista", value: "artista.nome", sortable: false },
-        { text: "", value: "actions", sortable: false },
+        { text: "Ações", value: "actions", sortable: false },
       ],
       albuns: [],
       totalAlbuns: 0,
@@ -57,7 +90,9 @@ export default {
       opcoes: {},
       dialog: false,
       albumVisualizado: null,
-      capasVisualizado: []
+      capasVisualizado: null,
+      capaAtual: 0,
+      colors: ["primary", "secondary", "yellow darken-2", "red", "orange"],
     };
   },
   watch: {
@@ -69,16 +104,6 @@ export default {
     },
   },
   methods: {
-    fechar() 
-    {
-      this.albumVisualizado = null;
-      this.capasVisualizado = [];
-      this.dialog = false;
-    },
-    detalhes(item) {
-      this.albumVisualizado = item;
-      this.dialog = true;
-    },
     getAlbuns() {
       this.carregando = true;
       this.$http
@@ -90,16 +115,39 @@ export default {
               ? this.totalAlbuns
               : this.opcoes.itemsPerPage)
         )
-        .then((response) => {          
+        .then((response) => {
           this.albuns = response.data.albuns;
           this.totalAlbuns = response.data.totalAlbuns;
           this.carregando = false;
         })
         .catch((e) => {
           console.log(e);
-          this.$router.push({name: "login"});
+          this.$router.push({ name: "login" });
         });
     },
+    getCapas(albumUID)
+    {
+        this.$http
+        .get(
+          `/capa/` + albumUID)
+        .then((response) => {
+          this.capasVisualizado = response.data;          
+        })
+        .catch((e) => {
+          console.log(e);          
+        });
+    },
+    fechar() {
+      this.albumVisualizado = null;
+      this.capasVisualizado = null;
+      this.capaAtual = 0;
+      this.dialog = false;
+    },
+    detalhes(item) {
+      this.albumVisualizado = item;
+      this.dialog = true;
+      this.getCapas(item.albumUID)
+    }        
   },
 };
 </script>
